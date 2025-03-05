@@ -4,6 +4,7 @@ import HomePage from "../pages/HomePage";
 import SignIn from "../components/SignIn";
 import PrivateRoute from "./PrivateRoute";
 import ProfilePage from "../pages/ProfilePage";
+import DocsPage from "../pages/DocsPage";
 
 const router = createBrowserRouter([
     {
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
         {
             path: "/profile",
             element: <PrivateRoute><ProfilePage/></PrivateRoute>
+        },
+        {
+            path: "/docs/:id",
+            element: <PrivateRoute><DocsPage/></PrivateRoute>
         },
         {
             path: "/login",

@@ -10,12 +10,15 @@ require('dotenv').config()
 
 //middelware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 //Routes
 const userRoute = require('./src/users/user.route')
+const docsRoute = require('./src/docs/docs.route')
 
 app.use('/api/auth', userRoute)
+app.use('/api/docs', docsRoute)
 
 async function main() {
     await mongoose.connect(process.env.DB_URL);
