@@ -3,6 +3,7 @@ import JoditEditor from "jodit-pro-react";
 import { useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext';
 import getBaseUrl from '../utils/baseURL';
+import { Link } from 'react-router-dom'
 
 const config = {
     height: 400, // Set height (in pixels)
@@ -66,7 +67,10 @@ export default function DocsPage() {
 			tabIndex={1} // tabIndex of textarea
 			onChange={(newContent) => setContent(newContent)}
 		  />
-      <button onClick={updateDoc} className='text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-base sm:text-lg px-5 py-1.5 transition-colors'>Save</button>
+      <div className='flex justify-between'>
+        <button onClick={updateDoc} className='text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-base sm:text-lg px-5 py-1.5 transition-colors'>Save</button>
+        <Link to='/'><button className='text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-base sm:text-lg px-5 py-1.5 transition-colors'>Go Home</button></Link>
+      </div>
     </div>
   )
 }
