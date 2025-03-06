@@ -73,6 +73,31 @@ export default function HomePage() {
     setDocs(docs.filter(doc => doc._id !== docId));
   };
 
+   // Upload document to Google Drive
+   const uploadToDrive = async (docId) => {
+    try {
+      const response = await fetch(`${getBaseUrl()}/api/docs/upload-to-drive/${docId}`, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: currentUser.uid })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to upload document');
+      }
+
+      alert('Document uploaded successfully!');
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      alert(error.message);
+    }
+  };
+
   return (
     <div className='sm:px-20'>
       <div className='flex items-center justify-between'>
@@ -82,7 +107,7 @@ export default function HomePage() {
       <div id='all-docs' className='mt-4'>
         {docs.length > 0 ? (
           docs.map((doc) => (
-            <Docs key={doc._id} doc={doc} onDelete={handleDeleteDoc} />
+            <Docs key={doc._id} doc={doc} onDelete={handleDeleteDoc} uploadToDrive={uploadToDrive} />
           ))
         ) : (
           <p>No documents found.</p>

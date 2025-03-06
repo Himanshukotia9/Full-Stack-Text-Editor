@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import getBaseUrl from '../utils/baseURL';
 import { useAuth } from '../context/AuthContext';
 
-export default function Docs({doc, onDelete}) {
+export default function Docs({doc, onDelete, uploadToDrive }) {
   const navigate = useNavigate();
   const {currentUser} = useAuth();
 
@@ -48,7 +48,7 @@ export default function Docs({doc, onDelete}) {
         </div>
       </div>
       <div id='Right-section' className='flex gap-2'>
-        <FaRegSave className='size-6 text-blue-500 hover:text-blue-600'/>
+        <FaRegSave id='UploadDoc' onClick={(e) => { e.stopPropagation(); uploadToDrive(doc._id); }} className='size-6 text-blue-500 hover:text-blue-600'/>
         <MdDelete className='size-6 text-red-600 hover:text-red-700' onClick={handleDelete} />
       </div>
     </div>
