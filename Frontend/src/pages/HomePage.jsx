@@ -1,9 +1,12 @@
+//HomePage.jsx
 import React, { useEffect, useState } from 'react'
 import { FiPlus } from "react-icons/fi";
 import Docs from '../components/Docs';
 import getBaseUrl from '../utils/baseURL';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { FaGoogle } from "react-icons/fa";
+
 
 export default function HomePage() {
 
@@ -12,7 +15,10 @@ export default function HomePage() {
   const [title, setTitle] = useState('')
   const [error, setError] = useState('')
   const [docs, setDocs] = useState([]);
+  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+  const [googleUserInfo, setGoogleUserInfo] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const fetchDocs = async () => {
@@ -32,7 +38,36 @@ export default function HomePage() {
     };
 
     if (currentUser) fetchDocs();
+    if (location.pathname === '/auth-success') {
+      checkGoogleAuthStatus();
+    }
   }, [currentUser]);
+
+  // Check if user is authenticated with Google
+  const checkGoogleAuthStatus = async () => {
+    try {
+      const response = await fetch(`${getBaseUrl()}/api/auth/user-info`, {
+        credentials: 'include' // Important for cookies/session
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIsGoogleConnected(true);
+        setGoogleUserInfo(data);
+      } else {
+        setIsGoogleConnected(false);
+        setGoogleUserInfo(null);
+      }
+    } catch (error) {
+      console.error("Error checking Google auth status:", error);
+      setIsGoogleConnected(false);
+    }
+  };
+  
+  // Initialize Google connection check on component mount
+  useEffect(() => {
+    checkGoogleAuthStatus();
+  }, []);
 
   const createDoc = async() => {
     if(title === ''){
@@ -73,12 +108,47 @@ export default function HomePage() {
     setDocs(docs.filter(doc => doc._id !== docId));
   };
 
+  // Connect to Google Drive
+  const connectGoogleDrive = async () => {
+    try {
+      const response = await fetch(`${getBaseUrl()}/api/auth/google`);
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        // Redirect to Google's OAuth page
+        window.location.href = data.authUrl;
+      }
+    } catch (error) {
+      console.error("Error connecting to Google Drive:", error);
+      alert("Failed to connect to Google Drive");
+    }
+  };
+  
+  // Disconnect from Google Drive
+  const disconnectGoogleDrive = async () => {
+    try {
+      await fetch(`${getBaseUrl()}/api/auth/logout`, {
+        credentials: 'include'
+      });
+      setIsGoogleConnected(false);
+      setGoogleUserInfo(null);
+      alert("Disconnected from Google Drive");
+    } catch (error) {
+      console.error("Error disconnecting from Google Drive:", error);
+    }
+  };
+
    // Upload document to Google Drive
    const uploadToDrive = async (docId) => {
+    if (!isGoogleConnected) {
+      alert("Please connect to Google Drive first");
+      return;
+    }
     try {
       const response = await fetch(`${getBaseUrl()}/api/docs/upload-to-drive/${docId}`, {
         method: 'POST',
         mode: 'cors',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -91,10 +161,15 @@ export default function HomePage() {
         throw new Error(data.message || 'Failed to upload document');
       }
 
-      alert('Document uploaded successfully!');
+      alert(`Document uploaded successfully to your Google Drive${data.fileUrl ? `\nView it here: ${data.fileUrl}` : ''}`);
     } catch (error) {
       console.error("Error uploading document:", error);
-      alert(error.message);
+      if (error.message.includes('Not authenticated')) {
+        alert("Your Google Drive session has expired. Please reconnect.");
+        setIsGoogleConnected(false);
+      } else {
+        alert(error.message);
+      }
     }
   };
 
@@ -104,10 +179,29 @@ export default function HomePage() {
         <h2 className='text-xl sm:text-3xl'>All Documents</h2>
         <button onClick={() => setIsModel(true)} className='flex items-center text-center text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-base sm:text-lg px-3 py-2.5 gap-2 transition-colors'>New Document <FiPlus /></button>
       </div>
+      <div className='my-4'>
+      {isGoogleConnected ? (
+          <div className="flex flex-col gap-2 p-3 border rounded-lg bg-gray-50">
+            <div className="flex items-center gap-2">
+              <FaGoogle className="text-red-500" />
+              <span>Connected to Google Drive as: <strong>{googleUserInfo?.email}</strong></span>
+            </div>
+            <button 
+              onClick={disconnectGoogleDrive}
+              className='flex items-center w-fit text-center text-white bg-red-600 hover:bg-red-700 font-medium rounded-lg text-base px-3 py-2 gap-2 transition-colors'
+            >
+              Disconnect Google Drive
+            </button>
+          </div>
+        ) : (
+          <button id='g-drive' 
+          onClick={connectGoogleDrive} className='flex items-center text-center text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-base sm:text-lg px-3 py-2.5 gap-2 transition-colors'>Link G-drive</button>
+        )}
+      </div>
       <div id='all-docs' className='mt-4'>
         {docs.length > 0 ? (
           docs.map((doc) => (
-            <Docs key={doc._id} doc={doc} onDelete={handleDeleteDoc} uploadToDrive={uploadToDrive} />
+            <Docs key={doc._id} doc={doc} onDelete={handleDeleteDoc} uploadToDrive={uploadToDrive} isGoogleConnected={isGoogleConnected} />
           ))
         ) : (
           <p>No documents found.</p>

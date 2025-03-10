@@ -1,3 +1,4 @@
+//Docs.jsx
 import React from 'react'
 import { FcDocument } from "react-icons/fc";
 import { MdDelete } from "react-icons/md";
@@ -6,9 +7,20 @@ import { useNavigate } from 'react-router-dom';
 import getBaseUrl from '../utils/baseURL';
 import { useAuth } from '../context/AuthContext';
 
-export default function Docs({doc, onDelete, uploadToDrive }) {
+export default function Docs({doc, onDelete, uploadToDrive, isGoogleConnected }) {
   const navigate = useNavigate();
   const {currentUser} = useAuth();
+
+  const handleUpload = (e) => {
+    e.stopPropagation(); // Prevent navigation when clicking upload
+    
+    if (!isGoogleConnected) {
+      alert("Please connect to Google Drive first to upload documents");
+      return;
+    }
+    
+    uploadToDrive(doc._id);
+  };
 
   const handleDelete = async (e) => {
     e.stopPropagation(); // Prevent navigation when clicking delete
@@ -48,7 +60,7 @@ export default function Docs({doc, onDelete, uploadToDrive }) {
         </div>
       </div>
       <div id='Right-section' className='flex gap-2'>
-        <FaRegSave id='UploadDoc' onClick={(e) => { e.stopPropagation(); uploadToDrive(doc._id); }} className='size-6 text-blue-500 hover:text-blue-600'/>
+        <FaRegSave id='UploadDoc' onClick={handleUpload} className='size-6 text-blue-500 hover:text-blue-600'/>
         <MdDelete className='size-6 text-red-600 hover:text-red-700' onClick={handleDelete} />
       </div>
     </div>
