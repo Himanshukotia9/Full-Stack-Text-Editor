@@ -47,7 +47,10 @@ export default function HomePage() {
   const checkGoogleAuthStatus = async () => {
     try {
       const response = await fetch(`${getBaseUrl()}/api/auth/user-info`, {
-        credentials: 'include' // Important for cookies/session
+        credentials: 'include', // Critical for sending cookies
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       if (response.ok) {

@@ -3,6 +3,7 @@ import React from 'react'
 import { FaGoogle } from "react-icons/fa";
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import getBaseUrl from '../utils/baseURL';
 
 export default function SignIn() {
 
@@ -20,7 +21,7 @@ export default function SignIn() {
             photo: user.photoURL
           };
 
-          const response = await fetch('http://localhost:5000/api/auth', {
+          const response = await fetch(`${getBaseUrl()}/api/auth`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userData),
