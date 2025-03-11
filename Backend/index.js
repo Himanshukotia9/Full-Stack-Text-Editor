@@ -17,7 +17,7 @@ const stripHtml = (html) => html.replace(/<[^>]*>?/gm, '');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: process.env.CLIENT_URL, // Your frontend URL
+  origin: [process.env.CLIENT_URL, 'http://localhost:5173'], // Your frontend URL
   credentials: true
 }));
 
@@ -194,6 +194,8 @@ app.post('/api/docs/upload-to-drive/:id', checkGoogleAuth, async (req, res) => {
 // Get user info endpoint
 app.get('/api/auth/user-info', (req, res) => {
   if (req.session.userInfo) {
+    console.log(req.session.userInfo);
+    
     res.json(req.session.userInfo);
   } else {
     res.status(401).json({ error: 'Not authenticated' });
